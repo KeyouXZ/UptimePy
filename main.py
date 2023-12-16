@@ -2,33 +2,37 @@ import os, socket, time, json
 from datetime import datetime
 import requests as rq
 from urllib.parse import urlparse
+from dotenv import load_dotenv as ld
 
-# Load Data
-monit_data = [
-    {"name": "Leurel", "url": "http://node2.leourel.com:25983", "status": ""},
-    {"name": "Skyo", "url": "http://skyo.serveo.net", "status": ""},
-    {"name": "Terraria", "url": "tcp://serveo.net:7777", "status": ""},
-    {"name": "Lemehost", "url": "tcp://5.9.8.124:9254", "status": ""}
-]
+# Load enviroments
+ld()
+NTFY_SERVER = os.getenv("NTFY_SERVER") or "https://ntfy.sh"
+NTFY_TOPIC = os.getenv("NTFY_TOPIC")
+INTERVAL = os.getenv("INTERVAL") or 120
 
-names = []
-urls = []
-statuses = []
+# Validate enviroment
+if not NTFY_TOPIC:
+    print("You must set your ntfy topic in .env file")
+    exit(1)
 
-for data in monit_data:
-    names.append(data["name"])
-    urls.append(data["url"])
-    statuses.append(data["status"])
-    
-ntfy = "UptimeSkyo"
-n = 0
+def save_data(data):
+    with open('config.json', 'w') as file:
+        json.dump(data, file, indent=4)
+
+def read_data():
+    try:
+        with open("config.json", "r") as file:   
+            return json.load(file)
+
+    except FileNotFoundError as e:
+        return {}
 
 def send_notification(url, status):
     name = names[urls.index(url)]
-    post_url = f"http://ntfy.sh/{ntfy}"
+    post_url = f"{NTFY_SERVER}/{NTFY_TOPIC}"
     data = f"{name} is {status}\nURL: {url}\nTime: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    print(f"{url} is {status}")
     response = rq.post(post_url, data=data)
-    print(f"{url} is {status}\n")
     
 def check_tcp_connection(url):
     parsed_url = urlparse(url)
@@ -37,11 +41,10 @@ def check_tcp_connection(url):
          with socket.create_connection((tcp_host, tcp_port), timeout=5):
               return True
     except (socket.timeout, socket.error) as e:
-       return False
+        return False
 
-def get_request(urls, statuses, count):
-    count = count + 1
-    print("Time loop: ", count)
+def get_request(urls, statuses):
+    print("=" * 30)
     
     for url in urls:
         print(f"Checking {url} ...")
@@ -57,6 +60,7 @@ def get_request(urls, statuses, count):
             else:
                 print(f"Connection type not supported: {url}\n")
                 continue
+
             # Send Status
             if get:
                 if statuses[index] == "Online":
@@ -65,6 +69,7 @@ def get_request(urls, statuses, count):
                 statuses[index] = "Online"
                     
                 send_notification(url, statuses[index])
+                save_data({"names": names, "urls": urls, "statuses": statuses})
                 
             elif not get:
                 if statuses[index] == "Offline":
@@ -72,18 +77,40 @@ def get_request(urls, statuses, count):
                 
                 statuses[index] = "Offline"
                 send_notification(url, statuses[index])
+                save_data({"names": names, "urls": urls, "statuses": statuses})
+
                 
         except rq.RequestException:
-            if statuses[index] == "Offline (Error)":
+            if statuses[index] == "Offline":
                 continue
 
-            statuses[index] = "Offline (Error)"
+            statuses[index] = "Offline"
             
             send_notification(url, statuses[index])
+            save_data({"names": names, "urls": urls, "statuses": statuses})
             
-    time.sleep(60)
-    get_request(urls, statuses, n)
+    time.sleep(int(INTERVAL))
+    read_data()
+    get_request(urls, statuses)
 
-get_request(urls, statuses, n)
+# Load Data
+monit_data = read_data()
+
+names = monit_data.get('names', [])
+urls = monit_data.get("urls", [])
+statuses = monit_data.get("statuses", [])
+
+if __name__ == __name__:
+    try:
+        start_message="Monitoring Device Started"
+        rq.post(f"{NTFY_SERVER}/{NTFY_TOPIC}", data=start_message)
+        print(start_message)
+
+        get_request(urls, statuses)
+    except KeyboardInterrupt:
+        stop_message = "Monitoring Device Stoped"
+        rq.post(f"{NTFY_SERVER}/{NTFY_TOPIC}", data=stop_message)
+        print(stop_message)
+        exit(1)
 
 

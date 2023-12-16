@@ -1,0 +1,14 @@
+{
+    "names": [
+        "Example 1",
+        "example 2"
+    ],
+    "urls": [
+        "https://example.com",
+        "tcp://example.com:8008"
+    ],
+    "statuses": [
+        "",
+        ""
+    ]
+}
