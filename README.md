@@ -1,2 +1,2 @@
 # UptimePy
-Website/TCP/UDP monitor
+HTTP/TCP/UDP monitor with Python and NTFY(https://ntfy.sh)
