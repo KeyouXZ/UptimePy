@@ -1,1 +1,0 @@
-PATH+=:venv/bin pm2 start main.py --name Uptime
