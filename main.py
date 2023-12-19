@@ -15,6 +15,16 @@ if not NTFY_TOPIC:
     print("You must set your ntfy topic in .env file")
     exit(1)
 
+def check_NTFY_SERVER():
+    try:
+        get = rq.get(NTFY_SERVER, timeout=5)
+        if not get:
+            print(f"Cannot connect to ntfy server ({NTFY_SERVER})")
+            exit(1)
+    except rq.RequestException:
+        print(f"Cannot connect to ntfy server ({NTFY_SERVER})")
+        exit(1)
+
 def save_data(data):
     with open('config.json', 'w') as file:
         json.dump(data, file, indent=4)
@@ -100,14 +110,15 @@ names = monit_data.get('names', [])
 urls = monit_data.get("urls", [])
 statuses = monit_data.get("statuses", [])
 
-if __name__ == __name__:
+if __name__ == "__main__":
     try:
+        check_NTFY_SERVER()
         start_message="Monitoring Device Started"
         rq.post(f"{NTFY_SERVER}/{NTFY_TOPIC}", data=start_message)
         print(start_message)
 
         get_request(urls, statuses)
-    except KeyboardInterrupt:
+    except (Exception, KeyboardInterrupt):
         stop_message = "Monitoring Device Stoped"
         rq.post(f"{NTFY_SERVER}/{NTFY_TOPIC}", data=stop_message)
         print(stop_message)
