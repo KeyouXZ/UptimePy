@@ -10,9 +10,16 @@ NTFY_SERVER = os.getenv("NTFY_SERVER") or "https://ntfy.sh"
 NTFY_TOPIC = os.getenv("NTFY_TOPIC")
 INTERVAL = os.getenv("INTERVAL") or 120
 
-# Validate enviroment
+# Analizing some enviroments
 if not NTFY_TOPIC:
     print("You must set your ntfy topic in .env file")
+    exit(1)
+
+# Analyze whether an Interval is a number or not
+try:
+    int(INTERVAL)
+except:
+    print("Interval must be number")
     exit(1)
 
 def check_NTFY_SERVER():
