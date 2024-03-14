@@ -1,14 +1,5 @@
 {
-    "names": [
-        "Example 1",
-        "example 2"
-    ],
-    "urls": [
-        "https://example.com",
-        "tcp://example.com:8008"
-    ],
-    "statuses": [
-        "",
-        ""
-    ]
+    "Example 1": "http://google.com",
+    "Example 2": "tcp://google.com:7474",
+    "Example 3": "udp://google.com:7373"
 }
