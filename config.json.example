@@ -1,0 +1,6 @@
+{
+    "example 1": "http://example.com",
+    "example 2": "https://example.com",
+    "example 3": "tcp://example.com:7878",
+    "example 4": "udp://example.com:7878",
+}

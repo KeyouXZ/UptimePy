@@ -150,7 +150,7 @@ if __name__ == "__main__":
         print(Fore.YELLOW + Style.BRIGHT + "=" * 40 + Style.RESET_ALL)
         get_request(read_data(2))
         
-    except KeyboardInterrupt:
+    except (Exception, KeyboardInterrupt):
         stop_message = "Monitoring Device Stoped"
         rq.post(f"{NTFY_SERVER}/{NTFY_TOPIC}", data=stop_message)
         print(INFO_MESSAGE + stop_message)
